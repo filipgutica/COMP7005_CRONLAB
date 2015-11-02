@@ -8,10 +8,12 @@ int main(int argc, char *argv[])
   char* datetime = NULL;
   char* emailAddr = NULL;
   char* attachment = NULL;
+  char cronjob[1024];
   struct tm tm = {0};
   FILE* crontab;
   time_t t;
 
+  // Parse command line args
   while ( (opt = getopt(argc, argv, "d:e:a:")) != -1 )
   {
     switch (opt)
@@ -31,43 +33,51 @@ int main(int argc, char *argv[])
     }
   }
 
+  // Quick Error check
   if (argc < 5)
   {
     printUsage();
     exit(0);
   }
 
-  strptime(datetime, "%Y-%m-%d-%H:%M", &tm);
+  if ( (strptime(datetime, "%m-%d-%H:%M", &tm)) == NULL )
+  {
+    printUsage();
+    exit(0);
+  }
 
-  year = 1900 + tm.tm_year;
+
+  // Parse the time
   month = 1 + tm.tm_mon;
   day = tm.tm_mday;
   hour = tm.tm_hour;
   minute = tm.tm_min;
 
-  std::cout << "Year " << 1900 + tm.tm_year << std::endl;
+  /*
   std::cout << "Month " << 1 + tm.tm_mon << std::endl;
   std::cout << "Day " << tm.tm_mday << std::endl;
   std::cout << "Hour " << tm.tm_hour << std::endl;
   std::cout << "Min " << tm.tm_min << std::endl;
 
-  printf("%s %s %s\n", datetime, emailAddr, attachment);
+  printf("%s %s %s\n", datetime, emailAddr, attachment);*/
 
-
+  // Open crontab for writing
   crontab = fopen("/etc/crontab", "a");
+  //  Create the cron job command
+  sprintf(cronjob, "%d %d %d %d * mail -s cronlab! %s < %s\n", minute, hour, day, month, emailAddr, attachment);
 
-  char cronjob[1024];
+  std::cout << "CRONJOB:: " << cronjob;
 
-  sprintf(cronjob, "%d %d %d %d * mail -s cronlab! %s < %s", minute, hour, day, month, emailAddr, attachment);
-
-  std::cout << "CRONJOB " << cronjob;
-
+  //Write the cron job to the crontab
   fprintf(crontab, "%s", cronjob);
+
+  //Close the file when finished
+  fclose(crontab);
 
   return 0;
 }
 
 void printUsage()
 {
-  printf("Usage: SendEmail -d date/time(dd-mm-dd-hh:mm) -e emailAddress [-a attachmentpath]\n");
+  printf("Usage: SendEmail -d date/time(mm-dd-hh:mm) -e emailAddress -a attachmentpath\n");
 }
