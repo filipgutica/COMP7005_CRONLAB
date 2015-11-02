@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
   // Open crontab for writing
   crontab = fopen("/etc/crontab", "a");
   //  Create the cron job command
-  sprintf(cronjob, "%d %d %d %d * mail -s cronlab! %s < %s\n", minute, hour, day, month, emailAddr, attachment);
+  sprintf(cronjob, "%d %d %d %d * mail -s cronlab! -a %s %s < /dev/null\n", minute, hour, day, month, , attachment, emailAddr);
 
   std::cout << "CRONJOB:: " << cronjob;
 
